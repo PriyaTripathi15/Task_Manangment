@@ -13,16 +13,19 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(",").map((origin) => origin.trim())
+const rawOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",")
   : ["http://localhost:5173"];
+
+const allowedOrigins = rawOrigins.map((o) => o.trim().replace(/\/+$/g, ""));
 
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
       if (process.env.ALLOW_ALL_CORS === "true") return callback(null, true);
+      const normalized = origin.replace(/\/+$/g, "");
+      if (allowedOrigins.includes(normalized)) return callback(null, true);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
