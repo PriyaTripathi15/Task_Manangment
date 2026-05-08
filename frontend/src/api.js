@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const envBaseUrl = import.meta.env.VITE_API_URL;
-const hostedFallback = "https://taskmanangment-production-fcf1.up.railway.app/api";
+const hostedFallback = "https://focused-creativity-production-c181.up.railway.app/api";
 
 const baseURL = envBaseUrl
   ? envBaseUrl.replace(/\/+$/g, "")
