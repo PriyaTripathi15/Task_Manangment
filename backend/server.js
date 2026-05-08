@@ -44,6 +44,26 @@ app.use(
 app.options("*", cors(corsOptions));
 app.use(express.json());
 
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    service: "Team Task Manager Backend",
+    status: "running",
+    message: "Backend is up",
+    health: "/api/health"
+  });
+});
+
+app.get("/api", (_req, res) => {
+  res.status(200).json({
+    service: "Team Task Manager API",
+    status: "running",
+    auth: "/api/auth",
+    projects: "/api/projects",
+    tasks: "/api/tasks",
+    users: "/api/users"
+  });
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
