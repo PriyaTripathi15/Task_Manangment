@@ -13,27 +13,35 @@ dotenv.config();
 
 const app = express();
 
+const defaultOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173"
+];
+
 const rawOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(",")
-  : ["http://localhost:5173"];
+  : defaultOrigins;
 
-const allowedOrigins = rawOrigins.map((o) => o.trim().replace(/\/+$/g, ""));
+const allowedOrigins = [...new Set([...defaultOrigins, ...rawOrigins])]
+  .map((o) => o.trim().replace(/\/+$/g, ""));
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (process.env.ALLOW_ALL_CORS === "true") return callback(null, true);
+    const normalized = origin.replace(/\/+$/g, "");
+    if (allowedOrigins.includes(normalized)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+};
 
 app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (process.env.ALLOW_ALL_CORS === "true") return callback(null, true);
-      const normalized = origin.replace(/\/+$/g, "");
-      if (allowedOrigins.includes(normalized)) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-  })
+  cors(corsOptions)
 );
 
-app.options("*", cors());
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
@@ -46,17 +54,18 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/users", userRoutes);
 
 const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+const port = process.env.PORT || 5000;
+
+app.listen(port, () => {
+  console.log(`Server Running on port ${port}`);
+});
 
 if (!mongoUri) {
-  console.error("Missing MongoDB connection string. Set MONGO_URI (or MONGODB_URI) in backend/.env");
-  process.exit(1);
+  console.error("Missing MongoDB connection string. Set MONGO_URI (or MONGODB_URI) in backend/.env or Railway variables");
+} else {
+  mongoose.connect(mongoUri)
+    .then(() => {
+      console.log("MongoDB Connected");
+    })
+    .catch((err) => console.log(err));
 }
-
-mongoose.connect(mongoUri)
-  .then(() => {
-    console.log("MongoDB Connected");
-    app.listen(process.env.PORT || 5000, () =>
-      console.log(`Server Running on port ${process.env.PORT || 5000}`)
-    );
-  })
-  .catch((err) => console.log(err));
