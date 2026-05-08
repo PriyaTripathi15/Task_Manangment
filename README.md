@@ -5,8 +5,8 @@ A full-stack team workflow app for creating projects, assigning tasks, tracking 
 
 ## Live Links
 
-- Live URL: add your Railway frontend URL here
-- GitHub repo: add your repository URL here
+- Live URL: https://taskmanangment-production.up.railway.app/
+- GitHub repo: https://github.com/PriyaTripathi15/Task_Manangment/
 
 ## Features
 
